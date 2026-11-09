@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>কর্মচারী QR স্ক্যানার</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #eef3fa;
+  text-align: center;
+  padding: 20px;
+  color: #17365d;
+}
+.card {
+  max-width: 450px;
+  margin: 30px auto;
+  padding: 22px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 2px 12px #0002;
+}
+button {
+  width: 100%;
+  padding: 16px;
+  margin-top: 15px;
+  border: 0;
+  border-radius: 9px;
+  background: #087d42;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+}
+#reader { margin-top: 20px; }
+#message { margin-top: 18px; }
+</style>
+</head>
+<body>
+<div class="card">
+<h2>কর্মচারীর QR স্ক্যানার</h2>
+<p>কারখানার স্ক্রিনে থাকা QR CODE স্ক্যান করুন</p>
+<button onclick="startScanner()">ক্যামেরা চালু করুন</button>
+<div id="reader"></div>
+<div id="message">ক্যামেরা চালু করতে বোতামে চাপ দিন।</div>
+</div>
+
+<script>
+let scanner = null;
+let busy = false;
+
+function startScanner() {
+  const msg = document.getElementById("message");
+
+  if (!window.Html5Qrcode) {
+    msg.textContent = "স্ক্যানার লোড হয়নি। ইন্টারনেট পরীক্ষা করুন।";
+    return;
+  }
+
+  if (scanner) return;
+
+  scanner = new Html5Qrcode("reader");
+  msg.textContent = "ক্যামেরার অনুমতি দিন।";
+
+  scanner.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 230, height: 230 } },
+    function(text) {
+      if (busy) return;
+
+      if (!/^https?:\/\//i.test(text)) {
+        msg.textContent = "সঠিক QR CODE নয়।";
+        return;
+      }
+
+      busy = true;
+      msg.textContent = "QR CODE পাওয়া গেছে। পেজ খুলছে...";
+
+      scanner.stop().then(function() {
+        window.location.href = text;
+      }).catch(function() {
+        window.location.href = text;
+      });
+    },
+    function() {}
+  ).catch(function(error) {
+    scanner = null;
+    msg.textContent = "ক্যামেরা চালু হয়নি: " + error;
+  });
+}
+</script>
+</body>
+</html>
